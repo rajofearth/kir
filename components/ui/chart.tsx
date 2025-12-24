@@ -118,8 +118,28 @@ function ChartTooltipContent({
   color,
   nameKey,
   labelKey,
-}: React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
+}: Omit<React.ComponentProps<typeof RechartsPrimitive.Tooltip>, "content"> &
   React.ComponentProps<"div"> & {
+    active?: boolean
+    payload?: Array<{
+      dataKey?: string
+      name?: string
+      value?: number | string
+      color?: string
+      type?: string
+      payload?: unknown
+      [key: string]: unknown
+    }>
+    label?: string | number
+    labelFormatter?: (value: unknown, payload: unknown) => React.ReactNode
+    formatter?: (
+      value: unknown,
+      name: unknown,
+      item: unknown,
+      index: number,
+      payload: unknown
+    ) => React.ReactNode
+    color?: string
     hideLabel?: boolean
     hideIndicator?: boolean
     indicator?: "line" | "dot" | "dashed"
@@ -184,7 +204,13 @@ function ChartTooltipContent({
           .map((item, index) => {
             const key = `${nameKey || item.name || item.dataKey || "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
-            const indicatorColor = color || item.payload.fill || item.color
+            const itemPayloadFill =
+              item.payload &&
+              typeof item.payload === "object" &&
+              "fill" in item.payload
+                ? (item.payload as { fill?: string }).fill
+                : undefined
+            const indicatorColor = color || itemPayloadFill || item.color
 
             return (
               <div
@@ -258,11 +284,18 @@ function ChartLegendContent({
   payload,
   verticalAlign = "bottom",
   nameKey,
-}: React.ComponentProps<"div"> &
-  Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
-    hideIcon?: boolean
-    nameKey?: string
-  }) {
+}: React.ComponentProps<"div"> & {
+  payload?: Array<{
+    dataKey?: string
+    value?: string | number
+    color?: string
+    type?: string
+    [key: string]: unknown
+  }>
+  verticalAlign?: "top" | "bottom"
+  hideIcon?: boolean
+  nameKey?: string
+}) {
   const { config } = useChart()
 
   if (!payload?.length) {

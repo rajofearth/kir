@@ -42,118 +42,167 @@ import {
   ArrowUpIcon 
 } from "@phosphor-icons/react"
 
-export function PromptForm() {
+interface PromptFormProps {
+  onSend?: (message: string) => void
+}
+
+export function PromptForm({ onSend }: PromptFormProps) {
   const [dictateEnabled, setDictateEnabled] = React.useState(false)
+  const [inputValue, setInputValue] = React.useState("")
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (inputValue.trim() && onSend) {
+      onSend(inputValue)
+      setInputValue("")
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSubmit(e)
+    }
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value)
+    // Auto-resize textarea
+    const textarea = e.target
+    textarea.style.height = "auto"
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 128)}px`
+  }
+
+  const handleResetHeight = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+    if (!inputValue.trim()) {
+      e.target.style.height = "auto"
+    }
+  }
 
   return (
-    <Field>
-      <FieldLabel htmlFor="prompt" className="sr-only">
-        Prompt
-      </FieldLabel>
-      <InputGroup>
-        <InputGroupTextarea id="prompt" placeholder="Ask anything" />
-        <InputGroupAddon align="block-end">
-          <DropdownMenu>
-            <Tooltip>
-              <DropdownMenuTrigger asChild>
-                <TooltipTrigger asChild>
-                  <InputGroupButton
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={() => setDictateEnabled(!dictateEnabled)}
-                    className="rounded-4xl"
-                  >
-                    <PlusIcon />
-                  </InputGroupButton>
-                </TooltipTrigger>
-              </DropdownMenuTrigger>
-              <TooltipContent>
-                Add files and more <Kbd>/</Kbd>
-              </TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent
-              className="w-56"
-              onCloseAutoFocus={(e) => e.preventDefault()}
-            >
-              <DropdownMenuItem>
-                <PaperclipIcon />
-                Add photos & files
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <SparkleIcon />
-                Deep research
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BagIcon />
-                Shopping research
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <MagicWandIcon />
-                Create image
-              </DropdownMenuItem>
+    <form onSubmit={handleSubmit}>
+      <Field>
+        <FieldLabel htmlFor="prompt" className="sr-only">
+          Prompt
+        </FieldLabel>
+        <InputGroup>
+          <InputGroupTextarea
+            id="prompt"
+            placeholder="Ask anything"
+            value={inputValue}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            onBlur={handleResetHeight}
+            rows={1}
+            className="max-h-32 resize-none"
+          />
+          <InputGroupAddon align="block-end">
+            <DropdownMenu>
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuItem>
-                    <HandPointingIcon />
-                    Agent mode
-                  </DropdownMenuItem>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <div className="font-medium">35 left</div>
-                  <div className="text-primary-foreground/80 text-xs">
-                    More available for purchase
-                  </div>
+                <DropdownMenuTrigger asChild>
+                  <TooltipTrigger asChild>
+                    <InputGroupButton
+                      type="button"
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => setDictateEnabled(!dictateEnabled)}
+                      className="rounded-4xl"
+                    >
+                      <PlusIcon />
+                    </InputGroupButton>
+                  </TooltipTrigger>
+                </DropdownMenuTrigger>
+                <TooltipContent>
+                  Add files and more <Kbd>/</Kbd>
                 </TooltipContent>
               </Tooltip>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <DotsThreeOutlineIcon />
-                  More
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem>
-                    <ShareIcon />
-                    Add sources
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <BookOpenIcon />
-                    Study and learn
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <GlobeIcon />
-                    Web search
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <PencilIcon />
-                    Canvas
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <InputGroupButton
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setDictateEnabled(!dictateEnabled)}
-                className="ml-auto rounded-4xl"
+              <DropdownMenuContent
+                className="w-56"
+                onCloseAutoFocus={(e) => e.preventDefault()}
               >
-                <MicrophoneIcon />
-              </InputGroupButton>
-            </TooltipTrigger>
-            <TooltipContent>Dictate</TooltipContent>
-          </Tooltip>
-          <InputGroupButton
-            size="icon-sm"
-            variant="default"
-            className="rounded-4xl"
-          >
-            <ArrowUpIcon />
-          </InputGroupButton>
-        </InputGroupAddon>
-      </InputGroup>
-    </Field>
+                <DropdownMenuItem>
+                  <PaperclipIcon />
+                  Add photos & files
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <SparkleIcon />
+                  Deep research
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <BagIcon />
+                  Shopping research
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <MagicWandIcon />
+                  Create image
+                </DropdownMenuItem>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuItem>
+                      <HandPointingIcon />
+                      Agent mode
+                    </DropdownMenuItem>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <div className="font-medium">35 left</div>
+                    <div className="text-primary-foreground/80 text-xs">
+                      More available for purchase
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <DotsThreeOutlineIcon />
+                    More
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem>
+                      <ShareIcon />
+                      Add sources
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <BookOpenIcon />
+                      Study and learn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <GlobeIcon />
+                      Web search
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <PencilIcon />
+                      Canvas
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <InputGroupButton
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setDictateEnabled(!dictateEnabled)}
+                  className="ml-auto rounded-4xl"
+                >
+                  <MicrophoneIcon />
+                </InputGroupButton>
+              </TooltipTrigger>
+              <TooltipContent>Dictate</TooltipContent>
+            </Tooltip>
+            <InputGroupButton
+              type="submit"
+              size="icon-sm"
+              variant="default"
+              className="rounded-4xl"
+              disabled={!inputValue.trim()}
+            >
+              <ArrowUpIcon />
+            </InputGroupButton>
+          </InputGroupAddon>
+        </InputGroup>
+      </Field>
+    </form>
   )
 }
 
