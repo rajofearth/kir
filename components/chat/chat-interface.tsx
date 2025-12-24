@@ -7,9 +7,10 @@ import { ModelSelector } from './model-selector'
 import { ChatMessage } from './chat-message'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { ChatCircleIcon, SpinnerIcon } from "@phosphor-icons/react"
+import { ChatCircleIcon, SpinnerIcon, ArrowDownIcon } from "@phosphor-icons/react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport, type UIMessage } from "ai"
+import { Button } from '@/components/ui/button'
 
 import { DEFAULT_CHAT_MODEL_ID, type ChatModelId } from "@/lib/ai/chat-models"
 
@@ -23,16 +24,22 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   const [selectedModel, setSelectedModel] =
     React.useState<ChatModelId>(DEFAULT_CHAT_MODEL_ID)
   const messagesEndRef = React.useRef<HTMLDivElement>(null)
+  const scrollAreaRef = React.useRef<HTMLDivElement>(null)
+  const [showScrollToBottom, setShowScrollToBottom] = React.useState(false)
 
-  const { messages, sendMessage, status, error } = useChat({
+  const { messages, sendMessage, status, error, stop } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/chat",
     }),
   })
 
   const scrollToBottom = React.useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    // Keep scrolling confined to the messages viewport (not the whole page).
+    // "auto" also avoids layout-jank while streaming tokens.
+    messagesEndRef.current?.scrollIntoView({ behavior: "auto" })
   }, [])
+
+  const isStreaming = status === "submitted" || status === "streaming"
 
   React.useEffect(() => {
     scrollToBottom()
@@ -61,6 +68,47 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     )
   }, [messages])
 
+  // Detect if user is at bottom using IntersectionObserver
+  React.useEffect(() => {
+    // Find the ScrollArea viewport to use as root
+    const findViewport = () => {
+      const scrollArea = scrollAreaRef.current?.querySelector('[data-slot="scroll-area"]')
+      return scrollArea?.querySelector('[data-slot="scroll-area-viewport"]') as HTMLElement | null
+    }
+
+    const viewport = findViewport()
+    const endElement = messagesEndRef.current
+
+    if (!endElement) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const isVisible = entries[0]?.isIntersecting ?? false
+        setShowScrollToBottom(!isVisible && visibleMessages.length > 0)
+      },
+      {
+        root: viewport || null,
+        rootMargin: "100px", // Show button when within 100px of bottom
+        threshold: 0,
+      }
+    )
+
+    // Small delay to ensure viewport is mounted
+    const timeout = setTimeout(() => {
+      const retryViewport = findViewport()
+      if (retryViewport && endElement) {
+        observer.observe(endElement)
+      }
+    }, 100)
+
+    return () => {
+      clearTimeout(timeout)
+      if (endElement) {
+        observer.unobserve(endElement)
+      }
+    }
+  }, [messages, visibleMessages.length])
+
   const lastMessage = visibleMessages.at(-1)
   const showLoader =
     (status === "submitted" || status === "streaming") &&
@@ -76,12 +124,13 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   return (
     <div
       className={cn(
-        "flex h-screen flex-col bg-background",
+        // Prevent the document/body from becoming scrollable; only the messages pane should scroll.
+        "flex h-dvh flex-col bg-background overflow-hidden",
         className
       )}
     >
       {/* Header */}
-      <header className="border-b border-border px-4 py-3">
+      <header className="shrink-0 border-b border-border px-4 py-3">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <h1 className="text-lg font-semibold">yunejo</h1>
           <ModelSelector value={selectedModel} onValueChange={setSelectedModel} />
@@ -94,50 +143,78 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       </header>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1">
-        <div className="mx-auto max-w-3xl">
-          {visibleMessages.length === 0 ? (
-            <div className="flex h-full min-h-[400px] flex-col items-center justify-center px-4 py-12 text-center">
-              <div className="mb-4 text-muted-foreground">
-                <ChatCircleIcon className="mx-auto size-12" />
-              </div>
-              <h2 className="mb-2 text-xl font-semibold">Start a conversation</h2>
-              <p className="text-muted-foreground text-sm">
-                Send a message to begin chatting
-              </p>
-            </div>
-          ) : (
-            <div className="py-4">
-              {visibleMessages.map((message) => {
-                const content = getMessageText(message)
-                if (!content) return null
-                return (
-                  <ChatMessage
-                    key={message.id}
-                    role={message.role}
-                    content={content}
-                  />
-                )
-              })}
-              {showLoader && (
-                <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground">
-                  <SpinnerIcon className="size-4 animate-spin" />
-                  <span className="text-xs">Thinking...</span>
+      <div ref={scrollAreaRef} className="min-h-0 flex-1 relative">
+        <ScrollArea className="h-full">
+          <div className="mx-auto max-w-3xl">
+            {visibleMessages.length === 0 ? (
+              <div className="flex h-full min-h-[400px] flex-col items-center justify-center px-4 py-12 text-center">
+                <div className="mb-4 text-muted-foreground">
+                  <ChatCircleIcon className="mx-auto size-12" />
                 </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          )}
-        </div>
-      </ScrollArea>
+                <h2 className="mb-2 text-xl font-semibold">Start a conversation</h2>
+                <p className="text-muted-foreground text-sm">
+                  Send a message to begin chatting
+                </p>
+              </div>
+            ) : (
+              <div className="py-4">
+                {visibleMessages.map((message) => {
+                  const content = getMessageText(message)
+                  if (!content) return null
+                  return (
+                    <ChatMessage
+                      key={message.id}
+                      role={message.role}
+                      content={content}
+                    />
+                  )
+                })}
+                {showLoader && (
+                  <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground">
+                    <SpinnerIcon className="size-4 animate-spin" />
+                    <span className="text-xs">Thinking...</span>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
 
       {/* Input Area */}
-      <div className="border-t border-border bg-background">
+      <div className="shrink-0 border-t border-border bg-background">
         <Separator />
-        <div className="mx-auto max-w-3xl px-4 py-4">
+        <div className="mx-auto max-w-3xl px-4 py-4 relative">
+          {/* Scroll to Bottom Button */}
+          {showScrollToBottom && (
+            <div className="absolute -top-12 right-4 z-10">
+              <Button
+                size="icon"
+                variant="default"
+                className="rounded-full shadow-lg"
+                onClick={() => {
+                  scrollToBottom()
+                  setShowScrollToBottom(false)
+                }}
+              >
+                <ArrowDownIcon className="size-4" />
+                <span className="sr-only">Scroll to bottom</span>
+              </Button>
+            </div>
+          )}
+          {/* Generating Message */}
+          {isStreaming && (
+            <div className="absolute top-0 left-4 flex items-center gap-1.5 text-[0.6875rem] text-muted-foreground">
+              <SpinnerIcon className="size-3 animate-spin" />
+              <span>Generating response...</span>
+            </div>
+          )}
           <PromptForm
             onSend={handleSendMessage}
+            onStop={stop}
             disabled={status !== "ready"}
+            isStreaming={isStreaming}
           />
         </div>
       </div>

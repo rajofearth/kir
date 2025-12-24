@@ -39,24 +39,38 @@ import {
   GlobeIcon, 
   PencilIcon, 
   MicrophoneIcon, 
-  ArrowUpIcon 
+  ArrowUpIcon,
+  StopIcon
 } from "@phosphor-icons/react"
 
 interface PromptFormProps {
   onSend?: (message: string) => void
+  onStop?: () => void
   disabled?: boolean
+  isStreaming?: boolean
 }
 
-export function PromptForm({ onSend, disabled = false }: PromptFormProps) {
+export function PromptForm({ 
+  onSend, 
+  onStop, 
+  disabled = false, 
+  isStreaming = false 
+}: PromptFormProps) {
   const [dictateEnabled, setDictateEnabled] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (disabled) return
+    if (disabled || isStreaming) return
     if (inputValue.trim() && onSend) {
       onSend(inputValue)
       setInputValue("")
+    }
+  }
+
+  const handleStop = () => {
+    if (onStop) {
+      onStop()
     }
   }
 
@@ -97,7 +111,7 @@ export function PromptForm({ onSend, disabled = false }: PromptFormProps) {
             onBlur={handleResetHeight}
             rows={1}
             className="max-h-32 resize-none"
-            disabled={disabled}
+            disabled={disabled || isStreaming}
           />
           <InputGroupAddon align="block-end">
             <DropdownMenu>
@@ -110,7 +124,7 @@ export function PromptForm({ onSend, disabled = false }: PromptFormProps) {
                       size="icon-sm"
                       onClick={() => setDictateEnabled(!dictateEnabled)}
                       className="rounded-4xl"
-                      disabled={disabled}
+                      disabled={disabled || isStreaming}
                     >
                       <PlusIcon />
                     </InputGroupButton>
@@ -188,22 +202,39 @@ export function PromptForm({ onSend, disabled = false }: PromptFormProps) {
                   size="icon-sm"
                   onClick={() => setDictateEnabled(!dictateEnabled)}
                   className="ml-auto rounded-4xl"
-                  disabled={disabled}
+                  disabled={disabled || isStreaming}
                 >
                   <MicrophoneIcon />
                 </InputGroupButton>
               </TooltipTrigger>
               <TooltipContent>Dictate</TooltipContent>
             </Tooltip>
-            <InputGroupButton
-              type="submit"
-              size="icon-sm"
-              variant="default"
-              className="rounded-4xl"
-              disabled={disabled || !inputValue.trim()}
-            >
-              <ArrowUpIcon />
-            </InputGroupButton>
+            {isStreaming ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <InputGroupButton
+                    type="button"
+                    size="icon-sm"
+                    variant="destructive"
+                    className="rounded-4xl cursor-pointer"
+                    onClick={handleStop}
+                  >
+                    <StopIcon />
+                  </InputGroupButton>
+                </TooltipTrigger>
+                <TooltipContent>Stop generation</TooltipContent>
+              </Tooltip>
+            ) : (
+              <InputGroupButton
+                type="submit"
+                size="icon-sm"
+                variant="default"
+                className="rounded-4xl cursor-pointer"
+                disabled={disabled || !inputValue.trim()}
+              >
+                <ArrowUpIcon />
+              </InputGroupButton>
+            )}
           </InputGroupAddon>
         </InputGroup>
       </Field>
