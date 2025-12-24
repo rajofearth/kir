@@ -134,6 +134,8 @@ body {
   /* Force width constraint to prevent expansion */
   overflow-wrap: break-word;
   word-wrap: break-word;
+  /* Never let markdown content create page-level horizontal scroll */
+  overflow-x: hidden;
 }
 
 /* Ensure Streamdown prose container respects width */
@@ -141,6 +143,36 @@ body {
   max-width: 100% !important;
   min-width: 0 !important;
   width: 100% !important;
+}
+
+/* Hard stop: any descendant must be allowed to shrink in flex/overflow contexts */
+.chat-markdown * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Mermaid diagrams (rendered as SVG) can have explicit width attrs that overflow on mobile */
+.chat-markdown .mermaid,
+.chat-markdown [data-mermaid],
+.chat-markdown .language-mermaid {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.chat-markdown .mermaid svg,
+.chat-markdown [data-mermaid] svg,
+.chat-markdown svg {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Some diagram renderers use foreignObject which can still size to content */
+.chat-markdown foreignObject {
+  max-width: 100%;
 }
 
 .chat-markdown [data-streamdown="code-block"] {
@@ -284,8 +316,8 @@ body {
 }
 
 .chat-markdown [data-streamdown="table"] > table {
-  @apply min-w-full;
-  width: max-content;
+  @apply w-full min-w-full;
+  table-layout: fixed;
 }
 
 .chat-markdown [data-streamdown="table-header"] {
@@ -294,6 +326,10 @@ body {
 
 .chat-markdown [data-streamdown="table-cell"] {
   @apply border border-border px-2 py-1.5 text-xs;
+  /* Prevent long tokens from forcing table expansion */
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
 }
 
 /* Reasoning section styling */
