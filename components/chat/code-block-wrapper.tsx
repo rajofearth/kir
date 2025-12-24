@@ -38,15 +38,34 @@ export function CodeBlockWrapper({ children }: { children: React.ReactNode }) {
     const codeBlocks = containerRef.current.querySelectorAll('[data-streamdown="code-block"]')
     
     codeBlocks.forEach((codeBlock) => {
-      // Skip if already processed
-      if (codeBlock.hasAttribute('data-enhanced')) return
-      codeBlock.setAttribute('data-enhanced', 'true')
+      // Skip only if fully processed (we may mark streaming fallback as "fallback")
+      if (codeBlock.getAttribute('data-enhanced') === 'true') return
+
+      // Always enforce safe sizing/scrolling (streaming can render a non-<pre> fallback temporarily)
+      const el = codeBlock as HTMLElement
+      el.style.maxWidth = '100%'
+      el.style.minWidth = '0'
+      el.style.overflowX = 'auto'
+      el.style.webkitOverflowScrolling = 'touch'
       
       const header = codeBlock.querySelector('[data-streamdown="code-block-header"]')
-      if (!header) return
+      if (!header) {
+        // Mark as fallback so we can still enhance later once the header is present.
+        codeBlock.setAttribute('data-enhanced', 'fallback')
+        return
+      }
       
       const pre = codeBlock.querySelector('pre')
-      if (!pre) return
+      if (!pre) {
+        // Streaming fallback: no <pre> yet. Keep it scrollable and retry later.
+        // Preserve newlines and avoid layout expansion while content is still plain text.
+        el.style.whiteSpace = 'pre'
+        codeBlock.setAttribute('data-enhanced', 'fallback')
+        return
+      }
+
+      // From here on, we have a stable structure and can fully enhance.
+      codeBlock.setAttribute('data-enhanced', 'true')
       
       // Reorganize header: language label on left, buttons on right
       const languageLabel = Array.from(header.childNodes)
@@ -76,12 +95,12 @@ export function CodeBlockWrapper({ children }: { children: React.ReactNode }) {
       wrapButton.setAttribute('data-tooltip', 'Toggle wrap')
       wrapButton.setAttribute('type', 'button')
       
-      const updateWrapIcon = (isWrapped: boolean) => {
+      const updateWrapIcon = () => {
         // Use Lucide text icon for wrap toggle
         wrapButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6.1H3"></path><path d="M21 12.1H3"></path><path d="M15.1 18H3"></path></svg>'
       }
       
-      updateWrapIcon(false)
+      updateWrapIcon()
       
       wrapButton.addEventListener('click', (e) => {
         e.preventDefault()
@@ -91,7 +110,7 @@ export function CodeBlockWrapper({ children }: { children: React.ReactNode }) {
         const newWrapped = !isWrapped
         
         codeBlock.setAttribute('data-wrapped', String(newWrapped))
-        updateWrapIcon(newWrapped)
+        updateWrapIcon()
       })
       
       // Count lines in the code block

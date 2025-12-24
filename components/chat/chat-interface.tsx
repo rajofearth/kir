@@ -139,23 +139,45 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       .join("")
   }
 
+  const getPartType = (part: unknown): string | undefined => {
+    if (!part || typeof part !== "object") return undefined
+    if (!("type" in part)) return undefined
+    const t = (part as { type?: unknown }).type
+    return typeof t === "string" ? t : undefined
+  }
+
+  const getMetadataReasoning = (message: ChatUIMessage): string | undefined => {
+    if (!message || typeof message !== "object") return undefined
+    if (!("metadata" in message)) return undefined
+    const metadata = (message as { metadata?: unknown }).metadata
+    if (!metadata || typeof metadata !== "object") return undefined
+    if (!("reasoning" in metadata)) return undefined
+    const reasoning = (metadata as { reasoning?: unknown }).reasoning
+    return typeof reasoning === "string" ? reasoning : undefined
+  }
+
   const getReasoning = (message: ChatUIMessage) => {
     // Check for reasoning parts in the message
     // Reasoning can come as a part with type "reasoning" or in metadata
     const reasoningPart = message.parts.find(
       (part) => {
-        const partType = (part as any).type
+        const partType = getPartType(part)
         return partType === "reasoning" || partType === "thinking" || partType === "reasoning-text"
       }
     )
     
     if (reasoningPart) {
       // Handle different reasoning part structures
-      if ("text" in reasoningPart && typeof reasoningPart.text === "string") {
-        return reasoningPart.text
-      }
-      if ("content" in reasoningPart && typeof reasoningPart.content === "string") {
-        return reasoningPart.content
+      if (typeof reasoningPart === "object" && reasoningPart !== null) {
+        if ("text" in reasoningPart && typeof (reasoningPart as { text?: unknown }).text === "string") {
+          return (reasoningPart as { text: string }).text
+        }
+        if (
+          "content" in reasoningPart &&
+          typeof (reasoningPart as { content?: unknown }).content === "string"
+        ) {
+          return (reasoningPart as { content: string }).content
+        }
       }
       if (typeof reasoningPart === "string") {
         return reasoningPart
@@ -163,10 +185,8 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
     }
     
     // Also check metadata for reasoning
-    const metadata = (message as any).metadata
-    if (metadata?.reasoning) {
-      return typeof metadata.reasoning === "string" ? metadata.reasoning : undefined
-    }
+    const metadataReasoning = getMetadataReasoning(message)
+    if (metadataReasoning) return metadataReasoning
     
     return undefined
   }
@@ -215,7 +235,14 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
                   const messageIsStreaming = isStreaming && isLastMessage && message.role === "assistant"
                   
                   // Show message if it has content, reasoning, or is streaming with reasoning
-                  if (!content && !reasoning && !(messageIsStreaming && message.parts.some(p => (p as any).type === "reasoning"))) {
+                  if (
+                    !content &&
+                    !reasoning &&
+                    !(
+                      messageIsStreaming &&
+                      message.parts.some((p) => getPartType(p) === "reasoning")
+                    )
+                  ) {
                     return null
                   }
                   

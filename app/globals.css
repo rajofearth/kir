@@ -178,14 +178,26 @@ body {
 .chat-markdown [data-streamdown="code-block"] {
   @apply w-full overflow-x-auto rounded-lg border border-border bg-muted/30 my-1.5;
   /* Prevent code block from breaking layout */
-  min-width: 0;
-  max-width: 100%;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  display: block;
   /* Force horizontal scroll instead of expansion */
-  overflow-x: auto;
+  overflow-x: auto !important;
   overflow-y: visible;
   /* Custom scrollbar - improved theme colors */
   scrollbar-width: thin;
   scrollbar-color: oklch(var(--muted-foreground) / 0.4) oklch(var(--muted) / 0.3);
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile-specific safeguard: constrain code block width relative to viewport */
+@media (max-width: 640px) {
+  .chat-markdown [data-streamdown="code-block"],
+  .chat-markdown .mermaid,
+  .chat-markdown [data-mermaid],
+  .chat-markdown .language-mermaid {
+    max-width: calc(100vw - 3.5rem) !important;
+  }
 }
 
 /* Custom scrollbar for webkit browsers */
@@ -211,8 +223,8 @@ body {
 .chat-markdown [data-streamdown="code-block"] > pre {
   @apply p-2.5 my-0;
   /* Ensure pre doesn't break layout */
-  min-width: 0;
-  max-width: 100%;
+  min-width: 0 !important;
+  max-width: 100% !important;
   overflow-x: auto;
   overflow-y: visible;
   /* Prevent text wrapping in code by default */
@@ -220,6 +232,7 @@ body {
   /* Custom scrollbar for pre - improved theme colors */
   scrollbar-width: thin;
   scrollbar-color: oklch(var(--muted-foreground) / 0.4) oklch(var(--muted) / 0.3);
+  -webkit-overflow-scrolling: touch;
 }
 
 .chat-markdown [data-streamdown="code-block"] > pre::-webkit-scrollbar {

@@ -41,7 +41,7 @@ export function ChatMessage({ role, content, reasoning, timestamp, isStreaming =
           "flex min-w-0 flex-col gap-2",
           isUser
             ? "items-end w-full max-w-[85%] md:max-w-[80%]"
-            : "items-start w-full sm:max-w-[90%] md:max-w-[80%]"
+            : "items-start w-full max-w-[92%] sm:max-w-[90%] md:max-w-[80%]"
         )}
       >
         {!isUser && reasoning && (
@@ -50,10 +50,10 @@ export function ChatMessage({ role, content, reasoning, timestamp, isStreaming =
         <div
           className={cn(
             // Prevent wide markdown children (tables/code/diagrams) from pushing the layout off-screen.
-            "rounded-2xl px-4 py-3 min-w-0",
+            "rounded-2xl px-4 py-3 min-w-0 max-w-full",
             isUser
-              ? "bg-primary text-primary-foreground w-fit max-w-full"
-              : "bg-muted text-muted-foreground w-full overflow-hidden"
+              ? "bg-primary text-primary-foreground w-fit"
+              : "bg-muted text-muted-foreground w-full overflow-x-hidden"
           )}
         >
           {isUser ? (
