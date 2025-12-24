@@ -66,7 +66,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       {/* Header */}
       <header className="border-b border-border px-4 py-3">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <h1 className="text-lg font-semibold">kir</h1>
+          <h1 className="text-lg font-semibold">yunejo</h1>
           <ModelSelector />
         </div>
       </header>

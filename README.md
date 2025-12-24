@@ -1,6 +1,6 @@
-# kir - AI Chat Service
+# yunejo - AI Chat Service
 
-kir is an intelligent AI chat service built with [Next.js](https://nextjs.org) and modern web technologies.
+yunejo is an intelligent AI chat service built with [Next.js](https://nextjs.org) and modern web technologies.
 
 ## Features
 

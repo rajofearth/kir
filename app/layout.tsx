@@ -5,8 +5,8 @@ import "./globals.css";
 const fontSans = Public_Sans({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
-  title: "kir - AI Chat",
-  description: "kir - Your intelligent AI chat assistant",
+  title: "yunejo - AI Chat",
+  description: "yunejo - Your intelligent AI chat assistant",
 };
 
 export default function RootLayout({
