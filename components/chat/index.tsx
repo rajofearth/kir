@@ -1,10 +1,10 @@
 "use client"
 
 import { cn } from '@/lib/utils'
-import { PromptForm } from '@/components/chat/prompt-form'
-import { ModelSelector } from '@/components/chat/model-selector'
-import { GroupChatDialog } from '@/components/chat/group-chat-dialog'
-import { CreateProjectForm } from '@/components/chat/create-project-form'
+import { PromptForm } from './prompt-form'
+import { ModelSelector } from './model-selector'
+import { GroupChatDialog } from './group-chat-dialog'
+import { CreateProjectForm } from './create-project-form'
 
 function SectionWrapper({ className, ...props }: React.ComponentProps<"div">) {
   return (
@@ -53,7 +53,7 @@ function Section({
   )
 }
 
-export default function Page() {
+export function ChatGPTBlock() {
   return (
     <SectionWrapper>
       <Section title="Prompt Form">
@@ -71,3 +71,4 @@ export default function Page() {
     </SectionWrapper>
   )
 }
+
