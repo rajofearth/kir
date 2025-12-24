@@ -6,15 +6,17 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { ChatCircleIcon, UserIcon } from "@phosphor-icons/react"
 import { Streamdown } from "streamdown"
 import { CodeBlockWrapper } from './code-block-wrapper'
+import { ReasoningSection } from './reasoning-section'
 
 interface ChatMessageProps {
   role: "user" | "assistant"
   content: string
+  reasoning?: string
   timestamp?: Date
   isStreaming?: boolean
 }
 
-export function ChatMessage({ role, content, timestamp, isStreaming = false }: ChatMessageProps) {
+export function ChatMessage({ role, content, reasoning, timestamp, isStreaming = false }: ChatMessageProps) {
   const isUser = role === "user"
 
   return (
@@ -37,6 +39,9 @@ export function ChatMessage({ role, content, timestamp, isStreaming = false }: C
           isUser ? "items-end" : "items-start"
         )}
       >
+        {!isUser && reasoning && (
+          <ReasoningSection reasoning={reasoning} isStreaming={isStreaming} />
+        )}
         <div
           className={cn(
             "rounded-2xl px-4 py-3 min-w-0 w-full",

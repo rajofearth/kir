@@ -121,6 +121,38 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       .join("")
   }
 
+  const getReasoning = (message: ChatUIMessage) => {
+    // Check for reasoning parts in the message
+    // Reasoning can come as a part with type "reasoning" or in metadata
+    const reasoningPart = message.parts.find(
+      (part) => {
+        const partType = (part as any).type
+        return partType === "reasoning" || partType === "thinking" || partType === "reasoning-text"
+      }
+    )
+    
+    if (reasoningPart) {
+      // Handle different reasoning part structures
+      if ("text" in reasoningPart && typeof reasoningPart.text === "string") {
+        return reasoningPart.text
+      }
+      if ("content" in reasoningPart && typeof reasoningPart.content === "string") {
+        return reasoningPart.content
+      }
+      if (typeof reasoningPart === "string") {
+        return reasoningPart
+      }
+    }
+    
+    // Also check metadata for reasoning
+    const metadata = (message as any).metadata
+    if (metadata?.reasoning) {
+      return typeof metadata.reasoning === "string" ? metadata.reasoning : undefined
+    }
+    
+    return undefined
+  }
+
   return (
     <div
       className={cn(
@@ -160,14 +192,21 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
               <div className="py-4">
                 {visibleMessages.map((message, index) => {
                   const content = getMessageText(message)
-                  if (!content) return null
+                  const reasoning = getReasoning(message)
                   const isLastMessage = index === visibleMessages.length - 1
                   const messageIsStreaming = isStreaming && isLastMessage && message.role === "assistant"
+                  
+                  // Show message if it has content, reasoning, or is streaming with reasoning
+                  if (!content && !reasoning && !(messageIsStreaming && message.parts.some(p => (p as any).type === "reasoning"))) {
+                    return null
+                  }
+                  
                   return (
                     <ChatMessage
                       key={message.id}
                       role={message.role}
-                      content={content}
+                      content={content || ""}
+                      reasoning={reasoning}
                       isStreaming={messageIsStreaming}
                     />
                   )

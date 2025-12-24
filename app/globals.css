@@ -295,4 +295,19 @@ body {
 .chat-markdown [data-streamdown="table-cell"] {
   @apply border border-border px-2 py-1.5 text-xs;
 }
+
+/* Reasoning section styling */
+.reasoning-section {
+  @apply rounded-lg border border-border/50 bg-muted/30 overflow-hidden;
+}
+
+.reasoning-section button {
+  @apply w-full flex items-center justify-between gap-2 px-3 py-2 text-xs font-medium;
+  @apply text-muted-foreground hover:text-foreground transition-colors;
+  @apply hover:bg-muted/50;
+}
+
+.reasoning-section [data-reasoning-content] {
+  @apply px-3 pb-3 pt-1 border-t border-border/50;
+}
 }
