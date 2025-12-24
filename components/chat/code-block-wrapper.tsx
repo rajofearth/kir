@@ -46,7 +46,7 @@ export function CodeBlockWrapper({ children }: { children: React.ReactNode }) {
       el.style.maxWidth = '100%'
       el.style.minWidth = '0'
       el.style.overflowX = 'auto'
-      el.style.webkitOverflowScrolling = 'touch'
+      ;(el.style as unknown as Record<string, string>).webkitOverflowScrolling = 'touch'
       
       const header = codeBlock.querySelector('[data-streamdown="code-block-header"]')
       if (!header) {
