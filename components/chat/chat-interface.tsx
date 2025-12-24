@@ -41,9 +41,27 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
 
   const isStreaming = status === "submitted" || status === "streaming"
 
+  // Auto-scroll on message changes
   React.useEffect(() => {
     scrollToBottom()
   }, [messages, scrollToBottom])
+
+  // Continuously scroll to bottom while streaming
+  React.useEffect(() => {
+    if (!isStreaming) return
+
+    // Scroll immediately when streaming starts
+    scrollToBottom()
+
+    // Set up interval to continuously scroll during streaming
+    const interval = setInterval(() => {
+      scrollToBottom()
+    }, 100) // Scroll every 100ms during streaming
+
+    return () => {
+      clearInterval(interval)
+    }
+  }, [isStreaming, scrollToBottom])
 
   const handleSendMessage = React.useCallback(
     (content: string) => {

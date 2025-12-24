@@ -13,6 +13,28 @@ interface ReasoningSectionProps {
 
 export function ReasoningSection({ reasoning, isStreaming = false }: ReasoningSectionProps) {
   const [isExpanded, setIsExpanded] = React.useState(true)
+  const [reasoningDuration, setReasoningDuration] = React.useState<number | null>(null)
+  const startTimeRef = React.useRef<number | null>(null)
+  const prevStreamingRef = React.useRef<boolean>(false)
+
+  // Track reasoning start time and calculate duration
+  React.useEffect(() => {
+    if (isStreaming && !prevStreamingRef.current) {
+      // Reasoning just started
+      startTimeRef.current = Date.now()
+      setReasoningDuration(null)
+      setIsExpanded(true) // Expand when reasoning starts
+    } else if (!isStreaming && prevStreamingRef.current && startTimeRef.current) {
+      // Reasoning just finished
+      const duration = Math.round((Date.now() - startTimeRef.current) / 1000)
+      setReasoningDuration(duration)
+      // Auto-collapse after reasoning is over
+      setIsExpanded(false)
+      startTimeRef.current = null
+    }
+    
+    prevStreamingRef.current = isStreaming
+  }, [isStreaming])
 
   if (!reasoning.trim()) return null
 
@@ -30,11 +52,11 @@ export function ReasoningSection({ reasoning, isStreaming = false }: ReasoningSe
         aria-label={isExpanded ? "Collapse reasoning" : "Expand reasoning"}
       >
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono uppercase tracking-wider">Reasoning</span>
-          {isStreaming && (
-            <span className="flex items-center gap-1">
-              <span className="size-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-[10px]">Thinking...</span>
+          {isStreaming || reasoningDuration === null ? (
+            <span className="text-[10px] font-mono uppercase tracking-wider">Reasoning</span>
+          ) : (
+            <span className="text-[10px] font-mono uppercase tracking-wider">
+              REASONED FOR {reasoningDuration} Secs
             </span>
           )}
         </div>
