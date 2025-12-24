@@ -36,6 +36,7 @@ export async function POST(req: Request) {
   const result = streamText({
     model: groq(modelId),
     messages: await convertToModelMessages(messages),
+    system: "You should address user's quearies directly be concise and smart. just like tony stark but in William Butcher's way",
   })
 
   return result.toUIMessageStreamResponse()

@@ -5,6 +5,33 @@ import * as React from "react"
 export function CodeBlockWrapper({ children }: { children: React.ReactNode }) {
   const containerRef = React.useRef<HTMLDivElement>(null)
 
+  // Helper function to count lines in code block
+  const countLines = (preElement: HTMLPreElement): number => {
+    const codeElement = preElement.querySelector('code')
+    if (!codeElement) return 0
+    
+    // Count line spans (if using line numbers) or split by newlines
+    const lineSpans = codeElement.querySelectorAll('span[class*="block"]')
+    if (lineSpans.length > 0) {
+      return lineSpans.length
+    }
+    
+    // Fallback: count newlines in text content
+    const text = codeElement.textContent || ''
+    return Math.max(1, text.split('\n').length)
+  }
+
+  // Lucide chevron icons for collapse/expand
+  const getChevronsDownUpSVG = (): string => {
+    // chevrons-down-up - when expanded (can collapse)
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 20 5-5 5 5"></path><path d="m7 4 5 5 5-5"></path></svg>'
+  }
+
+  const getChevronsUpDownSVG = (): string => {
+    // chevrons-up-down - when collapsed (can expand)
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg>'
+  }
+
   const enhanceCodeBlocks = React.useCallback(() => {
     if (!containerRef.current) return
     
@@ -50,9 +77,8 @@ export function CodeBlockWrapper({ children }: { children: React.ReactNode }) {
       wrapButton.setAttribute('type', 'button')
       
       const updateWrapIcon = (isWrapped: boolean) => {
-        wrapButton.innerHTML = isWrapped 
-          ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 2h12M1 7h12M1 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 4l2 2-2 2M10 9l2 2-2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
-          : '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 2h12M1 7h12M1 12h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
+        // Use Lucide text icon for wrap toggle
+        wrapButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 6.1H3"></path><path d="M21 12.1H3"></path><path d="M15.1 18H3"></path></svg>'
       }
       
       updateWrapIcon(false)
@@ -68,22 +94,43 @@ export function CodeBlockWrapper({ children }: { children: React.ReactNode }) {
         updateWrapIcon(newWrapped)
       })
       
+      // Count lines in the code block
+      const lineCount = countLines(pre)
+      
       // Create collapse toggle button
       const collapseButton = document.createElement('button')
-      collapseButton.className = 'code-collapse-toggle text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded hover:bg-muted/50 flex items-center'
+      collapseButton.className = 'code-collapse-toggle text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded hover:bg-muted/50 flex items-center gap-1.5'
       collapseButton.setAttribute('aria-label', 'Toggle collapse')
       collapseButton.setAttribute('data-tooltip', 'Collapse')
       collapseButton.setAttribute('type', 'button')
       
+      // Create container for line count and icon
+      const buttonContent = document.createElement('div')
+      buttonContent.className = 'flex items-center gap-1.5'
+      
+      // Create line count span
+      const lineCountSpan = document.createElement('span')
+      lineCountSpan.className = 'text-xs font-mono text-muted-foreground/70'
+      lineCountSpan.textContent = String(lineCount)
+      
+      // Create icon container
+      const iconContainer = document.createElement('span')
+      iconContainer.className = 'flex items-center'
+      
       const updateCollapseIcon = (isCollapsed: boolean) => {
-        // Show minus when expanded (can collapse), plus when collapsed (can expand)
-        collapseButton.innerHTML = isCollapsed
-          ? '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
-          : '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 7h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
+        // Show chevrons-up-down when collapsed (can expand), chevrons-down-up when expanded (can collapse)
+        iconContainer.innerHTML = isCollapsed
+          ? getChevronsUpDownSVG()  // Collapsed: show chevrons up-down (can expand)
+          : getChevronsDownUpSVG()  // Expanded: show chevrons down-up (can collapse)
         collapseButton.setAttribute('data-tooltip', isCollapsed ? 'Expand' : 'Collapse')
         collapseButton.setAttribute('aria-label', isCollapsed ? 'Expand' : 'Collapse')
         collapseButton.setAttribute('title', isCollapsed ? 'Expand' : 'Collapse')
       }
+      
+      // Assemble button content: line count on left, icon on right
+      buttonContent.appendChild(lineCountSpan)
+      buttonContent.appendChild(iconContainer)
+      collapseButton.appendChild(buttonContent)
       
       updateCollapseIcon(false)
       
