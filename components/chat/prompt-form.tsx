@@ -44,14 +44,16 @@ import {
 
 interface PromptFormProps {
   onSend?: (message: string) => void
+  disabled?: boolean
 }
 
-export function PromptForm({ onSend }: PromptFormProps) {
+export function PromptForm({ onSend, disabled = false }: PromptFormProps) {
   const [dictateEnabled, setDictateEnabled] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (disabled) return
     if (inputValue.trim() && onSend) {
       onSend(inputValue)
       setInputValue("")
@@ -95,6 +97,7 @@ export function PromptForm({ onSend }: PromptFormProps) {
             onBlur={handleResetHeight}
             rows={1}
             className="max-h-32 resize-none"
+            disabled={disabled}
           />
           <InputGroupAddon align="block-end">
             <DropdownMenu>
@@ -107,6 +110,7 @@ export function PromptForm({ onSend }: PromptFormProps) {
                       size="icon-sm"
                       onClick={() => setDictateEnabled(!dictateEnabled)}
                       className="rounded-4xl"
+                      disabled={disabled}
                     >
                       <PlusIcon />
                     </InputGroupButton>
@@ -184,6 +188,7 @@ export function PromptForm({ onSend }: PromptFormProps) {
                   size="icon-sm"
                   onClick={() => setDictateEnabled(!dictateEnabled)}
                   className="ml-auto rounded-4xl"
+                  disabled={disabled}
                 >
                   <MicrophoneIcon />
                 </InputGroupButton>
@@ -195,7 +200,7 @@ export function PromptForm({ onSend }: PromptFormProps) {
               size="icon-sm"
               variant="default"
               className="rounded-4xl"
-              disabled={!inputValue.trim()}
+              disabled={disabled || !inputValue.trim()}
             >
               <ArrowUpIcon />
             </InputGroupButton>
