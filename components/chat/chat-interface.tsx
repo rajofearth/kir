@@ -158,14 +158,17 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
               </div>
             ) : (
               <div className="py-4">
-                {visibleMessages.map((message) => {
+                {visibleMessages.map((message, index) => {
                   const content = getMessageText(message)
                   if (!content) return null
+                  const isLastMessage = index === visibleMessages.length - 1
+                  const messageIsStreaming = isStreaming && isLastMessage && message.role === "assistant"
                   return (
                     <ChatMessage
                       key={message.id}
                       role={message.role}
                       content={content}
+                      isStreaming={messageIsStreaming}
                     />
                   )
                 })}

@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 /* @import "shadcn/tailwind.css"; */
 
+/* Streamdown source for Tailwind v4 */
+@source "../node_modules/streamdown/dist/*.js";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -123,5 +126,173 @@
 }
 body {
   @apply bg-background text-foreground;
+}
+
+/* Streamdown chat message styling */
+.chat-markdown {
+  @apply max-w-full min-w-0 w-full;
+  /* Force width constraint to prevent expansion */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Ensure Streamdown prose container respects width */
+.chat-markdown .prose {
+  max-width: 100% !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.chat-markdown [data-streamdown="code-block"] {
+  @apply w-full overflow-x-auto rounded-lg border border-border bg-muted/30 my-1.5;
+  /* Prevent code block from breaking layout */
+  min-width: 0;
+  max-width: 100%;
+  /* Force horizontal scroll instead of expansion */
+  overflow-x: auto;
+  overflow-y: visible;
+  /* Custom scrollbar - improved theme colors */
+  scrollbar-width: thin;
+  scrollbar-color: oklch(var(--muted-foreground) / 0.4) oklch(var(--muted) / 0.3);
+}
+
+/* Custom scrollbar for webkit browsers */
+.chat-markdown [data-streamdown="code-block"]::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.chat-markdown [data-streamdown="code-block"]::-webkit-scrollbar-track {
+  background: oklch(var(--muted) / 0.3);
+  border-radius: 3px;
+}
+
+.chat-markdown [data-streamdown="code-block"]::-webkit-scrollbar-thumb {
+  background: oklch(var(--muted-foreground) / 0.4);
+  border-radius: 3px;
+}
+
+.chat-markdown [data-streamdown="code-block"]::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--muted-foreground) / 0.6);
+}
+
+.chat-markdown [data-streamdown="code-block"] > pre {
+  @apply p-2.5 my-0;
+  /* Ensure pre doesn't break layout */
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  /* Prevent text wrapping in code by default */
+  white-space: pre;
+  /* Custom scrollbar for pre - improved theme colors */
+  scrollbar-width: thin;
+  scrollbar-color: oklch(var(--muted-foreground) / 0.4) oklch(var(--muted) / 0.3);
+}
+
+.chat-markdown [data-streamdown="code-block"] > pre::-webkit-scrollbar {
+  height: 6px;
+}
+
+.chat-markdown [data-streamdown="code-block"] > pre::-webkit-scrollbar-track {
+  background: oklch(var(--muted) / 0.3);
+  border-radius: 3px;
+}
+
+.chat-markdown [data-streamdown="code-block"] > pre::-webkit-scrollbar-thumb {
+  background: oklch(var(--muted-foreground) / 0.4);
+  border-radius: 3px;
+}
+
+.chat-markdown [data-streamdown="code-block"] > pre::-webkit-scrollbar-thumb:hover {
+  background: oklch(var(--muted-foreground) / 0.6);
+}
+
+/* Wrapped state */
+.chat-markdown [data-streamdown="code-block"][data-wrapped="true"] > pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-markdown [data-streamdown="code-block-header"] {
+  @apply px-2.5 py-1.5 text-xs flex items-center justify-between gap-2;
+}
+
+.chat-markdown [data-streamdown="code-block-header"] > div {
+  @apply flex items-center gap-1;
+}
+
+.chat-markdown [data-streamdown="code-block-header"] button {
+  @apply text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded hover:bg-muted/50 flex items-center shrink-0;
+  @apply cursor-pointer;
+}
+
+.chat-markdown [data-streamdown="code-block-header"] button svg {
+  @apply shrink-0 size-3.5;
+}
+
+.chat-markdown [data-streamdown="code-inline"] {
+  @apply rounded px-1 py-0.5 bg-muted/50 text-foreground font-mono text-xs;
+}
+
+.chat-markdown [data-streamdown="heading-1"],
+.chat-markdown [data-streamdown="heading-2"],
+.chat-markdown [data-streamdown="heading-3"],
+.chat-markdown [data-streamdown="heading-4"],
+.chat-markdown [data-streamdown="heading-5"],
+.chat-markdown [data-streamdown="heading-6"] {
+  @apply font-semibold text-foreground mt-3 mb-1.5;
+}
+
+.chat-markdown [data-streamdown="heading-1"] {
+  @apply text-base;
+}
+
+.chat-markdown [data-streamdown="heading-2"] {
+  @apply text-sm;
+}
+
+.chat-markdown [data-streamdown="paragraph"] {
+  @apply text-foreground my-1.5;
+}
+
+.chat-markdown [data-streamdown="list"] {
+  @apply my-1.5 ml-4;
+}
+
+.chat-markdown [data-streamdown="list-item"] {
+  @apply my-0.5;
+}
+
+.chat-markdown [data-streamdown="link"] {
+  @apply text-primary underline hover:text-primary/80;
+}
+
+.chat-markdown [data-streamdown="blockquote"] {
+  @apply border-l-4 border-primary pl-3 italic my-1.5 text-muted-foreground;
+}
+
+.chat-markdown [data-streamdown="table"] {
+  @apply w-full overflow-x-auto border-collapse border border-border rounded-lg my-1.5;
+  /* Prevent table from breaking layout */
+  min-width: 0;
+  max-width: 100%;
+  display: block;
+  /* Force horizontal scroll instead of expansion */
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.chat-markdown [data-streamdown="table"] > table {
+  @apply min-w-full;
+  width: max-content;
+}
+
+.chat-markdown [data-streamdown="table-header"] {
+  @apply bg-muted/50;
+}
+
+.chat-markdown [data-streamdown="table-cell"] {
+  @apply border border-border px-2 py-1.5 text-xs;
 }
 }
